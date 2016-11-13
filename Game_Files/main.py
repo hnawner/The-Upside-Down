@@ -43,11 +43,14 @@ class Game(cocos.layer.ColorLayer):
                 if (isinstance(self.level.persistant[row][col], Game_elements.Player)):
                     self.player = self.level.persistant[row][col]
                     self.player.location = (row, col)
-
+    
     def redrawAll(self):
-        self.drawPersistant()
-        if self.isOverworld: self.drawOverworld()
-        else: self.drawUpsideDown()
+        if self.isOverworld:
+            self.drawOverworld()
+            self.drawPersistant()
+        else:
+            self.drawUpsideDown()
+            self.drawPersistantDark()
 
     def drawOverworld(self, z=1):
         for row in range(self.rows):
@@ -72,6 +75,20 @@ class Game(cocos.layer.ColorLayer):
                     self.add(extraSprite, z=0)
 
                 currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
+                self.add(currentSprite, z=0)
+
+    def drawPersistantDark(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                currentObject = self.level.persistant[row][col]
+
+                if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
+                    extraSprite = cocos.sprite.Sprite(pyglet.image.load((Game_elements.Floor().underImg)))
+                    extraSprite.position = 16+32*col, -16+32*(self.rows-row)
+                    self.add(extraSprite, z=0)
+
+                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.underImg)))
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=0)
 
@@ -218,14 +235,14 @@ class Game(cocos.layer.ColorLayer):
 class MainMenu(cocos.menu.Menu):
 
     def __init__(self):
-        super(MainMenu, self).__init__('Catch your husband!')
+        super(MainMenu, self).__init__('Upside-Down')
 
         self.font_title['font_name'] = 'Edit Undo Line BRK'
-        self.font_title['font_size'] = 52
-        self.font_title['color'] = (240, 0, 220, 255)
+        self.font_title['font_size'] = 43
+        self.font_title['color'] = (255, 180, 0, 255)
 
-        self.font_item['color'] = (255, 255, 255, 255)
-        self.font_item_selected['color'] = (240, 0, 220, 255)
+        self.font_item['color'] = (55, 55, 55, 255)
+        self.font_item_selected['color'] = (255,255, 255, 255)
 
         items = []
 
@@ -253,22 +270,22 @@ class MainMenu(cocos.menu.Menu):
 
 class OptionsMenu(cocos.menu.Menu):
     def __init__(self):
-        super(OptionsMenu, self).__init__('Catch your husband!')
+        super(OptionsMenu, self).__init__('Upside-Down')
 
         self.font_title['font_name'] = 'Edit Undo Line BRK'
-        self.font_title['font_size'] = 52
-        self.font_title['color'] = (240, 0, 220, 255)
+        self.font_title['font_size'] = 43
+        self.font_title['color'] = (255, 180, 0, 255)
 
-        self.font_item['color'] = (255, 255, 255, 255)
-        self.font_item_selected['color'] = (240, 0, 220, 255)
+        self.font_item['color'] = (55, 55, 55, 255)
+        self.font_item_selected['color'] = (255,255, 255, 255)
 
         items = []
 
-        items.append(cocos.menu.ToggleMenuItem(
-            'Show FPS:',
-            self.on_show_fps,
-            cocos.director.director.show_FPS)
-        )
+        #items.append(cocos.menu.ToggleMenuItem(
+        #    'Show FPS:',
+        #    self.on_show_fps,
+        #    cocos.director.director.show_FPS)
+        #)
         items.append(cocos.menu.MenuItem('Fullscreen', self.on_fullscreen))
         items.append(cocos.menu.MenuItem('Back', self.on_quit))
         self.create_menu(items, cocos.menu.shake(), cocos.menu.shake_back())
@@ -287,17 +304,17 @@ class OptionsMenu(cocos.menu.Menu):
 class BackgroundLayer(cocos.layer.Layer):
     def __init__(self):
         super(BackgroundLayer, self).__init__()
-        r = Game_elements.Rock()
+        r = Game_elements.Player()
         self.image = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
-        self.image.position = 400, 325
+        self.image.position = 400, 75
         self.add(self.image, z=0)
 
         self.player = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
-        self.player.position = 200, 75
+        self.player.position = 0, 295
         self.add(self.player, z=1)
 
         self.enemy = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
-        self.enemy.position = 400, 75
+        self.enemy.position = 385, 75
         self.add(self.enemy, z=1)
 
         self.boss = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
@@ -307,7 +324,10 @@ class BackgroundLayer(cocos.layer.Layer):
         self.boss.position = rect.center
         self.add(self.boss, z=1)
 
-        self.player.do(Repeat(JumpBy((0, 0), 100, 1, 1)))
+        self.player.do(Repeat(
+            MoveBy((-25, 0), 0.25) +
+            MoveBy((50, 0), 0.5) +
+            MoveBy((-25, 0), 0.25)))
         self.enemy.do(Repeat(
             MoveBy((-25, 0), 0.25) +
             MoveBy((50, 0), 0.5) +
