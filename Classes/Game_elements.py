@@ -2,9 +2,13 @@
 ## GAME ELEMENTS
 #############################
 
-from cocos.sprite import Sprite
-
 pathToImgs = '../Images/'
+
+class Player(Object):
+
+    def __init__(self):
+        self.img = pathToImgs + 'player-sprites/knt2_fr1.gif'
+        self.hasKey = False
 
 class Wall(Object):
 
