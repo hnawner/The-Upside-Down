@@ -27,6 +27,12 @@ class Game(cocos.layer.ColorLayer):
         self.rows = len(self.level.overworld)
         self.cols = len(self.level.overworld[0])
         self.schedule(self.update)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.level.overworld[row][col].location = (row, col)
+                if (isinstance(self.level.overworld[row][col], Game_elements.Player)):
+                    self.player = self.level.overworld[row][col]
+                    self.player.location = (row, col)
 
     def redrawAll(self):
         for row in range(self.rows):
@@ -54,15 +60,42 @@ class Game(cocos.layer.ColorLayer):
         #music_player.seek(1)
         #music_player.pause()
 
+    def updateLocation(self, row, col, drow, dcol):
+        self.level.overworld[row][col].location = (row+drow, col+dcol)
+        self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
+        self.level.overworld[row][col] = Game_elements.Floor()
+
+    def doMove(self, row, col, drow, dcol):
+        print(row, col, (row+drow), (col+dcol))
+        if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
+            print('out of bounds')
+            return False
+        nextSpace = self.level.overworld[row+drow][col+dcol]
+        print('nextspace', nextSpace)
+        if (nextSpace.isMovable):
+            print('testing movability: ', end='')
+            if (self.doMove(nextSpace.location[0], nextSpace.location[1], drow, dcol)):
+                nextSpace = self.level.overworld[row+drow][col+dcol]
+                print('moveable!')
+                self.updateLocation(row, col, drow, dcol)
+                return True
+            else:
+                print('failed :(')
+                return False
+        if (not nextSpace.isSolid):
+            print('next space is not solid')
+            self.updateLocation(row, col, drow, dcol)
+            return True
+
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:
-            print("going left")
+            self.doMove(self.player.location[0], self.player.location[1], 0, -1)
         elif symbol == key.RIGHT:
-            print("going right")
+            self.doMove(self.player.location[0], self.player.location[1], 0, +1)
         elif symbol == key.UP:
-            print("going up")
+            self.doMove(self.player.location[0], self.player.location[1], -1, 0)
         elif symbol == key.DOWN:
-            print("going down")
+            self.doMove(self.player.location[0], self.player.location[1], +1, 0)
 
     def update(self, dt):
         for sprite in self.get_children():
