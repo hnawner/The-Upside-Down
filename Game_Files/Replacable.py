@@ -34,7 +34,8 @@ class Game(cocos.layer.ColorLayer):
 
         self.collision_manager = cm.CollisionManagerBruteForce()
 
-        self.player = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Switch.over_on_img)))
+        s = Game_elements.Switch()
+        self.player = cocos.sprite.Sprite(pyglet.resource.image(s.over_on_img))
         self.player.position = 48, 16+7*32
         self.player.velocity = 0, 0
         self.player.speed = 150
@@ -78,7 +79,7 @@ class Game(cocos.layer.ColorLayer):
 
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.o_board[row][col] == 'W':
+                if self.level.overworld[row][col] == 'W':
                     self.objects[10*row+col] = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Wall.overImg)))
                     self.objects[10*row+col].position = 16+32*col, -16+32*(self.rows-row)
                     #self.enemies[10*row+col].position = 16+32*col, -16+32*(self.rows-row)
@@ -90,7 +91,7 @@ class Game(cocos.layer.ColorLayer):
                     )
                     self.collision_manager.add(self.objects[10*row+col])
                     self.add(self.objects[10*row+col], z=1)
-                if self.o_board[row][col] == 'P':
+                if self.level.overworld[row][col] == 'P':
                     pass
 
                     #self.batch.add(self.enemies[10*row+col])
@@ -129,17 +130,17 @@ class Game(cocos.layer.ColorLayer):
 
         self.schedule(self.update)
 
-    def on_enter(self):
-        super(Game, self).on_enter()
+    #def on_enter(self):
+    #    super(Game, self).on_enter()
 
-        try:
-            music_player.queue(resources.game_music)
-        except:
-            pass
+        # try:
+        #     music_player.queue(resources.game_music)
+        # except:
+        #     pass
 
-        music_player.play()
+        # music_player.play()
 
-        music_player.eos_action = 'loop'
+        # music_player.eos_action = 'loop'
 
     def on_exit(self):
         super(Game, self).on_exit()
@@ -214,7 +215,7 @@ class MainMenu(cocos.menu.Menu):
         self.create_menu(items, cocos.menu.shake(), cocos.menu.shake_back())
 
     def on_new_game(self):
-        game_layer = Game()
+        game_layer = Game(1)
         game_scene = cocos.scene.Scene(game_layer)
 
 
@@ -261,23 +262,24 @@ class OptionsMenu(cocos.menu.Menu):
     def on_show_fps(self, value):
         cocos.director.director.show_FPS = value
 
-
+#elf.player = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Switch.over_on_img)))
 class BackgroundLayer(cocos.layer.Layer):
     def __init__(self):
         super(BackgroundLayer, self).__init__()
-        self.image = cocos.sprite.Sprite(resources.background)
+        s = Game_elements.Switch()
+        self.image = cocos.sprite.Sprite(pyglet.resource.image((s.over_on_img)))
         self.image.position = 400, 325
         self.add(self.image, z=0)
 
-        self.player = cocos.sprite.Sprite(resources.player)
+        self.player = cocos.sprite.Sprite(pyglet.resource.image((s.over_on_img)))
         self.player.position = 200, 75
         self.add(self.player, z=1)
 
-        self.enemy = cocos.sprite.Sprite(resources.enemy)
+        self.enemy = cocos.sprite.Sprite(pyglet.resource.image((s.over_on_img)))
         self.enemy.position = 400, 75
         self.add(self.enemy, z=1)
 
-        self.boss = cocos.sprite.Sprite(resources.boss)
+        self.boss = cocos.sprite.Sprite(pyglet.resource.image((s.over_on_img)))
         self.boss.scale = 0.4
         rect = self.boss.get_rect()
         rect.midbottom = 600, 50
