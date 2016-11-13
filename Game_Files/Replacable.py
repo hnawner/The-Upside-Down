@@ -15,7 +15,10 @@ from pyglet.window import key
 import cocos
 import cocos.collision_model as cm
 import pyglet
-import resources
+import levelFetcher
+import Game_elements
+
+
 
 
 class Game(cocos.layer.ColorLayer):
@@ -23,13 +26,15 @@ class Game(cocos.layer.ColorLayer):
 
 
 
-    def __init__(self):
+    def __init__(self, levelNum):
         super(Game, self).__init__(22, 102, 225, 255)
         #r,g,b,a
+        self.level = levelFetcher.getLevel(levelNum)
+
 
         self.collision_manager = cm.CollisionManagerBruteForce()
 
-        self.player = cocos.sprite.Sprite(resources.player)
+        self.player = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Switch.over_on_img)))
         self.player.position = 48, 16+7*32
         self.player.velocity = 0, 0
         self.player.speed = 150
@@ -44,26 +49,27 @@ class Game(cocos.layer.ColorLayer):
         
 
 
-        self.boss = cocos.sprite.Sprite(resources.boss)
-        self.boss.position = 400, 600
-        self.boss.scale = 0.4
-        self.add(self.boss, z=1)
+        #self.boss = cocos.sprite.Sprite(resources.boss)
+        #self.boss.position = 400, 600
+        #self.boss.scale = 0.4
+        #self.add(self.boss, z=1)
 
-        self.boss.cshape = cm.AARectShape(
-            self.boss.position,
-            self.boss.width//2,
-            self.boss.height//2
-        )
-        self.collision_manager.add(self.boss)
+        #self.boss.cshape = cm.AARectShape(
+        #    self.boss.position,
+        #    self.boss.width//2,
+        #    self.boss.height//2
+        #)
+        #self.collision_manager.add(self.boss)
 
 
-        self.o_board = resources.o_board
-        self.u_board = resources.u_board
-        self.p_board = resources.p_board
+        #self.o_board = resources.o_board
+        #self.u_board = resources.u_board
+        #self.p_board = resources.p_board
 
-        self.rows = len(self.o_board)
-        self.cols = len(self.o_board[0])
-
+        self.rows = len(self.level.overworld)
+        self.cols = len(self.level.overworld[0])
+        #upsideDown
+        #persistant
 
         self.objects = list(range(self.rows**2))
 
@@ -73,7 +79,7 @@ class Game(cocos.layer.ColorLayer):
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.o_board[row][col] == 'W':
-                    self.objects[10*row+col] = cocos.sprite.Sprite(resources.enemy)
+                    self.objects[10*row+col] = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Wall.overImg)))
                     self.objects[10*row+col].position = 16+32*col, -16+32*(self.rows-row)
                     #self.enemies[10*row+col].position = 16+32*col, -16+32*(self.rows-row)
         #enem.position = positions[num]
