@@ -10,26 +10,28 @@ def convertBoardToInstances(a):
             key = a[row][col]
 
             if key == "_":
-                a[row][col] = game_elements.Floor()
+                a[row][col] = Game_elements.Floor()
             elif key == "P":
-                a[row][col] = game_elements.Player()
+                a[row][col] = Game_elements.Player()
             elif key == "W":
-                a[row][col] = game_elements.Wall()
+                a[row][col] = Game_elements.Wall()
             elif key == "R":
-                a[row][col] = game_elements.Rock()
+                a[row][col] = Game_elements.Rock()
+            elif key == 'K':
+                a[row][col] = Game_elements.Key()
             elif key == "KW":
-                a[row][col] = game_elements.Keywall()
+                a[row][col] = Game_elements.Keywall()
             elif key == "D(L)":
-                a[row][col] = game_elements.Door(True)
+                a[row][col] = Game_elements.Door(True)
             elif key == "D(U)":
-                a[row][col] = game_elements.Door(False)
+                a[row][col] = Game_elements.Door(False)
             elif key == "S(A)":
-                a[row][col] = game_elements.Switch(True)
+                a[row][col] = Game_elements.Switch(True)
             elif key == "S(D)":
-                a[row][col] = game_elements.Switch(False)
+                a[row][col] = Game_elements.Switch(False)
             elif key == "#":
-                a[row][col] = game_elements.Portal()
-
+                a[row][col] = Game_elements.Portal()
+    return a
 
 def rowIsEmpty(a):
     for val in a:

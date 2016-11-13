@@ -1,15 +1,16 @@
 #############################
 ## GAME ELEMENTS
 #############################
-
+import pyglet
 pathToImgs = '../Images/'
 
-class Player(Object):
+class Player(object):
     def __init__(self):
-        self.img = pathToImgs + 'player-sprites/knt2_fr1.gif'
+        self.overImg = pathToImgs + 'player-sprites/knt2_fr1.gif'
+        self.underImg = pathToImgs + 'player-sprites/knt2_fr1.gif'
         self.hasKey = False
 
-class Wall(Object):
+class Wall(object):
     def __init__(self):
         global pathToImgs
         self.overImg = pathToImgs + 'Overworld/o_wall.png'
@@ -23,22 +24,23 @@ class Switch(object):
         self.isMovable = False
         self.isSolid = False
 
-        if self.isOn:
-            turnOn()
+        if isOn:
+            self.turnOn()
         else:
-            turnOff()
+            self.turnOff()
 
-    def turnOn():
+    def turnOn(self):
         global pathToImgs
         self.isOn = True
-        self.over_img ='key.png'
-        self.over_img = pathToImgs + 'Overworld/o_off_switch.png'
+        self.over_img =pathToImgs + 'Overworld/o_on_switch.png'
+        self.under_img = pathToImgs + 'Upside_Down/u_on_switch.png'
+        
 
-    def turnOff():
+    def turnOff(self):
         global pathToImgs
         self.isOn = False
-        self.under_on_img = pathToImgs + 'Upside_Down/u_on_switch.png'
-        self.under_off_img = pathToImgs + 'Upside_Down/u_off_switch.png'
+        self.over_img = pathToImgs + 'Overworld/o_off_switch.png'
+        self.under_img = pathToImgs + 'Upside_Down/u_off_switch.png'
 
 
 
@@ -55,7 +57,8 @@ class Key(object):
 
     def __init__(self):
         global pathToImgs
-        self.img = pathToImgs + 'key.png'
+        self.overImg = pathToImgs + 'key.png'
+        self.underImg = pathToImgs + 'key.png'
 
 class Ladder(object):
 
@@ -74,15 +77,15 @@ class Keywall(object):
         self.isMovable = False
         self.isSolid = True
 
-class Door(object, locked = True):
+class Door(object):
 
-    def __init__(self):
+    def __init__(self, locked=True):
         if locked:
             self.lock()
         else:
             self.unlock()
 
-    def unlock():
+    def unlock(self):
         global pathToImgs
         self.locked = False
         self.isMovable = False
@@ -90,7 +93,7 @@ class Door(object, locked = True):
         self.overImg = pathToImgs + 'Overworld/o_floor.png'
         self.underImg = pathToImgs + 'Upside_Down/u_floor.png'
 
-    def lock():
+    def lock(self):
         global pathToImgs
         self.locked = True
         self.isMovable = False
