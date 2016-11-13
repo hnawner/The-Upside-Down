@@ -28,11 +28,20 @@ class Game(cocos.layer.ColorLayer):
         self.cols = len(self.level.overworld[0])
         self.schedule(self.update)
         self.isOverworld = True
+        # init overworld
         for row in range(self.rows):
             for col in range(self.cols):
                 self.level.overworld[row][col].location = (row, col)
-                if (isinstance(self.level.overworld[row][col], Game_elements.Player)):
-                    self.player = self.level.overworld[row][col]
+        # init upsidedown
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.level.upsideDown[row][col].location = (row, col)
+        # init persistant
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.level.persistant[row][col].location = (row, col)
+                if (isinstance(self.level.persistant[row][col], Game_elements.Player)):
+                    self.player = self.level.persistant[row][col]
                     self.player.location = (row, col)
 
     def redrawAll(self):
@@ -97,30 +106,99 @@ class Game(cocos.layer.ColorLayer):
         #music_player.seek(1)
         #music_player.pause()
 
-    def updateLocation(self, row, col, drow, dcol):
-        self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
-        self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
-        self.level.overworld[row][col] = Game_elements.Floor()
+    def testCollisions(self, row, col, drow, dcol, dimension):
+        # test persistant
+        if (dimension == 'persistant'):
+            nextSpacePer = self.level.persistant[row+drow][col+dcol]
+            # test portals
+            if (isinstance(nextSpacePer, Game_elements.Portal)):
+                self.isOverworld = not self.isOverworld
+                return True
+            # test moveability
+            if (nextSpacePer.isMovable):
+                if (self.doMove(nextSpacePer.location[0], nextSpacePer.location[1], drow, dcol)):
+                    nextSpacePer = self.level.persistant[row+drow][col+dcol]
+                    #self.updateLocation(row, col, drow, dcol, 'persistant')
+                    return True
+                else: return False
+            # test for walls etc
+            elif (not nextSpacePer.isSolid):
+                #self.updateLocation(row, col, drow, dcol, 'persistant')
+                return True
+            else: return False
+        # test overworld
+        elif (dimension == 'overworld'):
+            nextSpaceOver = self.level.overworld[row+drow][col+dcol]
+            # test for key
+            if (isinstance(nextSpaceOver, Game_elements.Key)):
+                self.player.hasKey = True
+                #self.updateLocation(row, col, drow, dcol, 'overworld')
+                return True
+            # test moveability
+            elif (nextSpaceOver.isMovable):
+                if (self.testCollisions(nextSpaceOver[0], nextSpaceOver[1], drow, dcol, 'overworld')):
+                    nextSpaceOver = self.level.overworld[row+drow][col+dcol]
+                    #self.updateLocation(row, col, drow, dcol, 'overworld')
+                    return True
+                else: return False
+            # test for walls etc
+            elif (not nextSpaceOver.isSolid):
+                #self.updateLocation(row, col, drow, dcol, 'overworld')
+                return True
+            else: return False
+        # test upsidedown
+        elif (dimension == 'upsideDown'):
+            nextSpaceUnder = self.level.upsideDown[row+drow][col+dcol]
+            # test for key
+            if (isinstance(nextSpaceUnder, Game_elements.Key)):
+                self.player.hasKey = True
+                #self.updateLocation(row, col, drow, dcol, 'upsideDown')
+                return True
+            # test moveability
+            elif (nextSpaceUnder.isMovable):
+                if (self.testCollisions(nextSpaceUnder.location[0], nextSpaceUnder.location[1], drow, dcol, 'upsideDown')):
+                    nextSpaceUnder = self.level.upsideDown[row+drow][col+dcol]
+                    #self.updateLocation(row, col, drow, dcol, 'upsideDown')
+                    return True
+                else: return False
+            # test for walls etc
+            elif (not nextSpaceUnder.isSolid):
+                #self.updateLocation(row, col, drow, dcol, 'upsideDown')
+                return True
+            else: return False
+
+
+
+    def updateLocation(self, row, col, drow, dcol, dimension):
+        if (dimension == 'overworld'):
+            self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
+            self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
+            self.level.overworld[row][col] = Game_elements.Floor()
+        elif (dimension == 'upsideDown'):
+            self.level.upsideDown[row][col].location = (row+drow, col+dcol) # updated player location
+            self.level.upsideDown[row+drow][col+dcol] = self.level.upsideDown[row][col]
+            self.level.upsideDown[row][col] = Game_elements.Floor()
+        else:
+            self.level.persistant[row][col].location = (row+drow, col+dcol) # updated player location
+            self.level.persistant[row+drow][col+dcol] = self.level.persistant[row][col]
+            self.level.persistant[row][col] = Game_elements.Floor()
 
     def doMove(self, row, col, drow, dcol):
         if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
             return False
-        nextSpace = self.level.overworld[row+drow][col+dcol]
-        # test if nextSpace has a key
-        if (isinstance(nextSpace, Game_elements.Key)):
-            self.player.hasKey = True
-            self.updateLocation(row, col, drow, dcol) # and move player into space
-            return True
-        if (nextSpace.isMovable):
-            if (self.doMove(nextSpace.location[0], nextSpace.location[1], drow, dcol)):
-                nextSpace = self.level.overworld[row+drow][col+dcol]
-                self.updateLocation(row, col, drow, dcol)
-                return True
-            else:
+        if (self.testCollisions(row, col, drow, dcol, 'persistant') == False):
+            return False
+        if (self.isOverworld):
+            if (self.testCollisions(row, col, drow, dcol, 'overworld') == False):
                 return False
-        if (not nextSpace.isSolid):
-            self.updateLocation(row, col, drow, dcol)
-            return True
+        else:
+            if (self.testCollisions(row, col, drow, dcol, 'upsideDown') == False):
+                return False
+
+        self.updateLocation(row, col, drow, dcol, 'overworld')
+        self.updateLocation(row, col, drow, dcol, 'upsideDown')
+        self.updateLocation(row, col, drow, dcol, 'persistant')
+
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:
