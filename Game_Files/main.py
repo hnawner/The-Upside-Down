@@ -21,112 +21,23 @@ import Game_elements
 class Game(cocos.layer.ColorLayer):
     is_event_handler = True
 
-
-
     def __init__(self, levelNum):
         super(Game, self).__init__(22, 102, 225, 255)
-        #r,g,b,a
         self.level = levelFetcher.getLevel(levelNum)
-
-
-        self.collision_manager = cm.CollisionManagerBruteForce()
-
-        # Clive = Game_elements.Player()
-        # self.player = cocos.sprite.Sprite(pyglet.image.load(Clive.img))
-        # self.player.position = 48, 16+7*32
-        # self.player.velocity = 0, 0
-        # self.player.speed = 150
-        # self.add(self.player, z=2)
-
-        # self.player.cshape = cm.AARectShape(
-        #     self.player.position,
-        #     self.player.width//2,
-        #     self.player.height//2
-        # )
-        # self.collision_manager.add(self.player)
-        
-
-
-        #self.boss = cocos.sprite.Sprite(resources.boss)
-        #self.boss.position = 400, 600
-        #self.boss.scale = 0.4
-        #self.add(self.boss, z=1)
-
-        #self.boss.cshape = cm.AARectShape(
-        #    self.boss.position,
-        #    self.boss.width//2,
-        #    self.boss.height//2
-        #)
-        #self.collision_manager.add(self.boss)
-
-
-        #self.o_board = resources.o_board
-        #self.u_board = resources.u_board
-        #self.p_board = resources.p_board
-
         self.rows = len(self.level.overworld)
         self.cols = len(self.level.overworld[0])
-        #upsideDown
-        #persistant
+        self.schedule(self.update)
 
-        #self.objects = list(range(self.rows**2))
-
-        #[cocos.sprite.Sprite(resources.enemy)
-         #               for i in range(100)]
-
+    def redrawAll(self):
         for row in range(self.rows):
             for col in range(self.cols):
                 currentObject = self.level.overworld[row][col]
-                print(currentObject)
                 currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
-                    #self.enemies[10*row+col].position = 16+32*col, -16+32*(self.rows-row)
-        #enem.position = positions[num]
-                # currentSprite.cshape = cm.AARectShape(
-                #     currentSprite.position,
-                #     currentSprite.width//2,
-                #     currentSprite.height//2
-                # )
-                # self.collision_manager.add(currentSprite)
                 self.add(currentSprite, z=1)
-                    #self.batch.add(self.enemies[10*row+col])
-        #for enem in self.enemies:
-         #   self.batch.add(enem)
 
-        #self.add(self.batch, z=1)
-
-
-
-
-
-        #self.player.do(Move())
-
-        # move_basic = MoveBy((120, 0), 1)
-        # self.enemies[0].do(Repeat(move_basic + Reverse(move_basic)))
-        # self.enemies[1].do(Repeat(Reverse(move_basic) + move_basic))
-
-        # move_complex = (MoveBy((-75, 75), 1) +
-        #                 Delay(0.5) +
-        #                 MoveBy((-75, -75), 1) +
-        #                 Delay(0.5) +
-        #                 MoveBy((75, -75), 1) +
-        #                 Delay(0.5) +
-        #                 MoveBy((75, 75), 1) +
-        #                 Delay(0.5))
-        # self.enemies[2].do(Repeat(move_complex))
-        # self.enemies[3].do(Repeat(Reverse(move_complex)))
-
-        # move_jump = AccelDeccel(JumpBy((200, 0), 75, 3, 3))
-        # move_jump_rot = AccelDeccel(RotateBy(360, 3))
-        # self.enemies[4].do(Repeat(move_jump + Reverse(move_jump)))
-        # self.enemies[4].do(Repeat(move_jump_rot + Reverse(move_jump_rot)))
-        # self.enemies[5].do(Repeat(Reverse(move_jump) + move_jump))
-        # self.enemies[5].do(Repeat(Reverse(move_jump_rot) + move_jump_rot))
-
-        self.schedule(self.update)
-
-    #def on_enter(self):
-    #    super(Game, self).on_enter()
+    def on_enter(self):
+        super(Game, self).on_enter()
 
         # try:
         #     music_player.queue(resources.game_music)
@@ -145,45 +56,18 @@ class Game(cocos.layer.ColorLayer):
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:
-            self.player.position = self.player.position[0] -32, self.player.position[1]
-            self.player.cshape.center = self.player.position
-            collisions = self.collision_manager.objs_colliding(self.player)
-            if collisions:
-                self.player.position = self.player.position[0] +32, self.player.position[1]
-
+            print("going left")
         elif symbol == key.RIGHT:
-            self.player.position = self.player.position[0] +32, self.player.position[1]
-            self.player.cshape.center = self.player.position
-            collisions = self.collision_manager.objs_colliding(self.player)
-            if collisions:
-                self.player.position = self.player.position[0] -32, self.player.position[1]
-
+            print("going right")
         elif symbol == key.UP:
-            self.player.position = self.player.position[0], self.player.position[1] +32
-            self.player.cshape.center = self.player.position
-            collisions = self.collision_manager.objs_colliding(self.player)
-            if collisions:
-                self.player.position = self.player.position[0], self.player.position[1] -32
-
+            print("going up")
         elif symbol == key.DOWN:
-            self.player.position = self.player.position[0], self.player.position[1] -32
-            self.player.cshape.center = self.player.position
-            collisions = self.collision_manager.objs_colliding(self.player)
-            if collisions:
-                self.player.position = self.player.position[0], self.player.position[1] +32
-
+            print("going down")
 
     def update(self, dt):
-        collisions = self.collision_manager.objs_colliding(self.player)
-        if collisions:
-            if self.boss in collisions:
-                print("You won!")
-            self.player.cshape.center = self.player.position
-        else:
-            self.player.cshape.center = self.player.position
-            
-
-
+        for sprite in self.get_children():
+            self.remove(sprite)
+        self.redrawAll()
 
 class MainMenu(cocos.menu.Menu):
 
