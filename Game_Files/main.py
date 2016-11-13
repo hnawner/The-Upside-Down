@@ -28,6 +28,8 @@ class Game(cocos.layer.ColorLayer):
         self.cols = len(self.level.overworld[0])
         self.schedule(self.update)
         self.isOverworld = True
+        self.inPortal = False
+        self.justInPortal = False
         # init overworld
         for row in range(self.rows):
             for col in range(self.cols):
@@ -130,7 +132,14 @@ class Game(cocos.layer.ColorLayer):
             # test portals
             if (isinstance(nextSpacePer, Game_elements.Portal)):
                 self.isOverworld = not self.isOverworld
+                self.inPortal = True
+                self.justInPortal = True
                 return True
+
+            if (isinstance(nextSpacePer, Game_elements.Keywall)):
+                if (self.player.hasKey):
+                    return True
+                else: return False
             # test moveability
             if (nextSpacePer.isMovable):
                 if (self.doMove(nextSpacePer.location[0], nextSpacePer.location[1], drow, dcol)):
@@ -184,21 +193,28 @@ class Game(cocos.layer.ColorLayer):
                 return True
             else: return False
 
-
-
     def updateLocation(self, row, col, drow, dcol, dimension):
         if (dimension == 'overworld'):
             self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
-            self.level.overworld[row][col] = Game_elements.Floor()
+            if not self.inPortal or self.justInPortal:
+                self.level.overworld[row][col] = Game_elements.Floor()
+            else:
+                self.level.overworld[row][col] = Game_elements.Portal()
         elif (dimension == 'upsideDown'):
             self.level.upsideDown[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.upsideDown[row+drow][col+dcol] = self.level.upsideDown[row][col]
-            self.level.upsideDown[row][col] = Game_elements.Floor()
+            if not self.inPortal or self.justInPortal:
+                self.level.upsideDown[row][col] = Game_elements.Floor()
+            else:
+                self.level.upsideDown[row][col] = Game_elements.Portal()
         else:
             self.level.persistant[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.persistant[row+drow][col+dcol] = self.level.persistant[row][col]
-            self.level.persistant[row][col] = Game_elements.Floor()
+            if not self.inPortal or self.justInPortal:
+                self.level.persistant[row][col] = Game_elements.Floor()
+            else:
+                self.level.persistant[row][col] = Game_elements.Portal()
 
     def doMove(self, row, col, drow, dcol):
         if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
@@ -215,6 +231,12 @@ class Game(cocos.layer.ColorLayer):
         self.updateLocation(row, col, drow, dcol, 'overworld')
         self.updateLocation(row, col, drow, dcol, 'upsideDown')
         self.updateLocation(row, col, drow, dcol, 'persistant')
+
+        if self.justInPortal: 
+            self.justInPortal = False
+        else:
+            if self.inPortal: self.inPortal = False
+        return True
 
 
     def on_key_press(self, symbol, modifiers):
