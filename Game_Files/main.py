@@ -27,6 +27,7 @@ class Game(cocos.layer.ColorLayer):
         self.rows = len(self.level.overworld)
         self.cols = len(self.level.overworld[0])
         self.schedule(self.update)
+        self.isOverworld = True
         for row in range(self.rows):
             for col in range(self.cols):
                 self.level.overworld[row][col].location = (row, col)
@@ -35,12 +36,48 @@ class Game(cocos.layer.ColorLayer):
                     self.player.location = (row, col)
 
     def redrawAll(self):
+        self.drawPersistant()
+        if self.isOverworld: self.drawOverworld()
+        else: self.drawUpsideDown()
+
+    def drawOverworld(self, z=1):
         for row in range(self.rows):
             for col in range(self.cols):
                 currentObject = self.level.overworld[row][col]
+                
+                if isinstance(currentObject, Game_elements.Floor):
+                    continue
+
                 currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=1)
+
+    def drawPersistant(self, z=0):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                currentObject = self.level.persistant[row][col]
+
+                if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
+                    extraSprite = cocos.sprite.Sprite(pyglet.image.load((Game_elements.Floor().overImg)))
+                    extraSprite.position = 16+32*col, -16+32*(self.rows-row)
+                    self.add(extraSprite, z=0)
+
+                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
+                self.add(currentSprite, z=0)
+
+    def drawUpsideDown(self, z=2):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                currentObject = self.level.upsideDown[row][col]
+                
+                if isinstance(currentObject, Game_elements.Floor):
+                    continue
+
+                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
+                self.add(currentSprite, z=2)
+
 
     def on_enter(self):
         super(Game, self).on_enter()
@@ -66,24 +103,17 @@ class Game(cocos.layer.ColorLayer):
         self.level.overworld[row][col] = Game_elements.Floor()
 
     def doMove(self, row, col, drow, dcol):
-        print(row, col, (row+drow), (col+dcol))
         if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
-            print('out of bounds')
             return False
         nextSpace = self.level.overworld[row+drow][col+dcol]
-        print('nextspace', nextSpace)
         if (nextSpace.isMovable):
-            print('testing movability: ', end='')
             if (self.doMove(nextSpace.location[0], nextSpace.location[1], drow, dcol)):
                 nextSpace = self.level.overworld[row+drow][col+dcol]
-                print('moveable!')
                 self.updateLocation(row, col, drow, dcol)
                 return True
             else:
-                print('failed :(')
                 return False
         if (not nextSpace.isSolid):
-            print('next space is not solid')
             self.updateLocation(row, col, drow, dcol)
             return True
 

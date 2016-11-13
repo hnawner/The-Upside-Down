@@ -32,15 +32,15 @@ class Switch(object):
     def turnOn(self):
         global pathToImgs
         self.isOn = True
-        self.over_img =pathToImgs + 'Overworld/o_on_switch.png'
-        self.under_img = pathToImgs + 'Upside_Down/u_on_switch.png'
+        self.overImg =pathToImgs + 'Overworld/o_on_switch.png'
+        self.underImg = pathToImgs + 'Upside_Down/u_on_switch.png'
         
 
     def turnOff(self):
         global pathToImgs
         self.isOn = False
-        self.over_img = pathToImgs + 'Overworld/o_off_switch.png'
-        self.under_img = pathToImgs + 'Upside_Down/u_off_switch.png'
+        self.overImg = pathToImgs + 'Overworld/o_off_switch.png'
+        self.underImg = pathToImgs + 'Upside_Down/u_off_switch.png'
 
 
 
@@ -113,7 +113,8 @@ class Floor(object):
 class Portal(object):
 
     def __init__(self):
-        self.img = pathToImgs + 'Portal.gif'
+        self.overImg = pathToImgs + 'Portal.gif'
+        self.underImg = pathToImgs + 'Portal.gif'
         self.isMovable = False
         self.isSolid = False
 

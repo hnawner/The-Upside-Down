@@ -29,6 +29,8 @@ def convertBoardToInstances(a):
                 a[row][col] = Game_elements.Switch(True)
             elif key == "S(D)":
                 a[row][col] = Game_elements.Switch(False)
+            elif key == "L":
+                a[row][col] = Game_elements.Ladder()
             elif key == "#":
                 a[row][col] = Game_elements.Portal()
     return a
@@ -73,7 +75,7 @@ def getListFromFile(path):
     return clean2dList(levelList)
 
 def stripByType(a, keepOnlyPersistant = False):
-    persistantObjects = ["S(D)", "S(A)", "D(L)", "D(U)" "R", "#", "KW"]
+    persistantObjects = ["S(D)", "S(A)", "D(L)", "D(U)", "R", "#", "KW"]
 
     newList = copy.deepcopy(a)
     (rows, cols) = (len(a), len(a[0]))
@@ -97,8 +99,12 @@ def getLevel(level):
     overworld = convertBoardToInstances(
                 stripByType(getListFromFile(overworldPath), False))
     persistant = convertBoardToInstances(
-                stripByType(getListFromFile(overworldPath), True))
+                 stripByType(getListFromFile(overworldPath), True))
     upsideDown = convertBoardToInstances(
                 stripByType(getListFromFile(upsideDownPath), False))
 
-    return UDLevel.Level(overworld, persistant, upsideDown)
+    # overworld = stripByType(getListFromFile(overworldPath), False)
+    # persistant = stripByType(getListFromFile(overworldPath), True)
+    # upsideDown = stripByType(getListFromFile(upsideDownPath), False)
+
+    return UDLevel.Level(overworld, upsideDown, persistant)
