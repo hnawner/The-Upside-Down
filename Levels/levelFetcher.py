@@ -1,4 +1,6 @@
 import csv
+import UDLevel
+import copy
 
 def rowIsEmpty(a):
     for val in a:
@@ -30,13 +32,43 @@ def cleanCols(a):
 def clean2dList(a):
     return cleanCols(cleanRows(a))
 
-def getLevel(level, dimension):
-    level = str(level)
+def getListFromFile(path):
     levelList = []
-    path = 'level%s/%s_level%s.csv' % (level, dimension, level)
     with open(path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             levelList.append(row)
 
     return clean2dList(levelList)
+
+def stripByType(a, keepOnlyPersistant = False):
+    persistantObjects = ["S(D)", "S(A)", "D", "R", "#"]
+
+    newList = copy.deepcopy(a)
+    (rows, cols) = (len(a), len(a[0]))
+
+    for row in range(rows):
+        for col in range(cols):
+            if newList[row][col] in persistantObjects:
+                if keepOnlyPersistant == False:
+                    newList[row][col] = "_"
+            else:
+                if keepOnlyPersistant == True:
+                    newList[row][col] = "_"
+
+    return newList
+
+
+def getLevel(level):
+    overworldPath = 'level%d/%s_level%s.csv' % (level, "o", level)
+    upsideDownPath = 'level%d/%s_level%s.csv' % (level, "u", level)
+
+    overworld = stripByType(getListFromFile(overworldPath), False)
+    persistant = stripByType(getListFromFile(overworldPath), True)
+    upsideDown = stripByType(getListFromFile(upsideDownPath), False)
+
+    print(overworld)
+    print(persistant)
+    print(upsideDown)
+
+    return UDLevel.Level(overworld, persistant, upsideDown)
