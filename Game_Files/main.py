@@ -30,6 +30,7 @@ class Game(cocos.layer.ColorLayer):
         self.isOverworld = True
         self.inPortal = False
         self.justInPortal = False
+        self.onSwitch = False
         # init overworld
         for row in range(self.rows):
             for col in range(self.cols):
@@ -102,7 +103,7 @@ class Game(cocos.layer.ColorLayer):
                 if isinstance(currentObject, Game_elements.Floor):
                     continue
 
-                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.underImg)))
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=2)
 
@@ -136,10 +137,23 @@ class Game(cocos.layer.ColorLayer):
                 self.justInPortal = True
                 return True
 
+            # test keywall
             if (isinstance(nextSpacePer, Game_elements.Keywall)):
                 if (self.player.hasKey):
                     return True
                 else: return False
+
+            # test switches
+            if (isinstance(nextSpacePer, Game_elements.Switch)):
+                self.onSwitch = True
+                return True
+
+            # test door
+            if (isinstance(nextSpacePer, Game_elements.Door)):
+                if (self.onSwitch):
+                    return True
+                else: return False
+
             # test moveability
             if (nextSpacePer.isMovable):
                 if (self.doMove(nextSpacePer.location[0], nextSpacePer.location[1], drow, dcol)):
@@ -180,6 +194,7 @@ class Game(cocos.layer.ColorLayer):
                 self.player.hasKey = True
                 #self.updateLocation(row, col, drow, dcol, 'upsideDown')
                 return True
+
             # test moveability
             elif (nextSpaceUnder.isMovable):
                 if (self.testCollisions(nextSpaceUnder.location[0], nextSpaceUnder.location[1], drow, dcol, 'upsideDown')):
@@ -228,8 +243,10 @@ class Game(cocos.layer.ColorLayer):
             if (self.testCollisions(row, col, drow, dcol, 'upsideDown') == False):
                 return False
 
-        self.updateLocation(row, col, drow, dcol, 'overworld')
-        self.updateLocation(row, col, drow, dcol, 'upsideDown')
+        if (self.isOverworld):
+            self.updateLocation(row, col, drow, dcol, 'overworld')
+        else:
+            self.updateLocation(row, col, drow, dcol, 'upsideDown')
         self.updateLocation(row, col, drow, dcol, 'persistant')
 
         if self.justInPortal: 
