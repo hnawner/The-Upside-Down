@@ -4,18 +4,12 @@
 
 pathToImgs = '../Images/'
 
-<<<<<<< HEAD
-class Wall(object):
-=======
 class Player(Object):
-
     def __init__(self):
         self.img = pathToImgs + 'player-sprites/knt2_fr1.gif'
         self.hasKey = False
 
 class Wall(Object):
->>>>>>> 9160c061b8ab06f33b2ec9fdd2c9ee170faf0567
-
     def __init__(self):
         global pathToImgs
         self.overImg = pathToImgs + 'Overworld/o_wall.png'
@@ -25,15 +19,28 @@ class Wall(Object):
 
 class Switch(object):
 
-    def __init__(self):
-        global pathToImgs
-        self.over_on_img ='key.png'
-        self.over_off_img = pathToImgs + 'Overworld/o_off_switch.png'
-        self.under_on_img = pathToImgs + 'Upside_Down/u_on_switch.png'
-        self.under_off_img = pathToImgs + 'Upside_Down/u_off_switch.png'
+    def __init__(self, isOn = False):
         self.isMovable = False
         self.isSolid = False
+
+        if self.isOn:
+            turnOn()
+        else:
+            turnOff()
+
+    def turnOn():
+        global pathToImgs
+        self.isOn = True
+        self.over_img ='key.png'
+        self.over_img = pathToImgs + 'Overworld/o_off_switch.png'
+
+    def turnOff():
+        global pathToImgs
         self.isOn = False
+        self.under_on_img = pathToImgs + 'Upside_Down/u_on_switch.png'
+        self.under_off_img = pathToImgs + 'Upside_Down/u_off_switch.png'
+
+
 
 class Rock(object):
 
@@ -66,6 +73,31 @@ class Keywall(object):
         self.underImg = pathToImgs + 'Upside_Down/u_keywall.png'
         self.isMovable = False
         self.isSolid = True
+
+class Door(object, locked = True):
+
+    def __init__(self):
+        if locked:
+            self.lock()
+        else:
+            self.unlock()
+
+    def unlock():
+        global pathToImgs
+        self.locked = False
+        self.isMovable = False
+        self.isSolid = False
+        self.overImg = pathToImgs + 'Overworld/o_floor.png'
+        self.underImg = pathToImgs + 'Upside_Down/u_floor.png'
+
+    def lock():
+        global pathToImgs
+        self.locked = True
+        self.isMovable = False
+        self.isSolid = True
+        self.overImg = pathToImgs + 'Overworld/o_door.png'
+        self.underImg = pathToImgs + 'Upside_Down/u_door.png'
+
 
 class Floor(object):
 

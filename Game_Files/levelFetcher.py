@@ -1,6 +1,35 @@
 import csv
 import UDLevel
 import copy
+import Game_elements
+
+def convertBoardToInstances(a):
+    (rows, cols) = (len(a), len(a[0]))
+    for row in range(rows):
+        for col in range(cols):
+            key = a[row][col]
+
+            if key == "_":
+                a[row][col] = game_elements.Floor()
+            elif key == "P":
+                a[row][col] = game_elements.Player()
+            elif key == "W":
+                a[row][col] = game_elements.Wall()
+            elif key == "R":
+                a[row][col] = game_elements.Rock()
+            elif key == "KW":
+                a[row][col] = game_elements.Keywall()
+            elif key == "D(L)":
+                a[row][col] = game_elements.Door(True)
+            elif key == "D(U)":
+                a[row][col] = game_elements.Door(False)
+            elif key == "S(A)":
+                a[row][col] = game_elements.Switch(True)
+            elif key == "S(D)":
+                a[row][col] = game_elements.Switch(False)
+            elif key == "#":
+                a[row][col] = game_elements.Portal()
+
 
 def rowIsEmpty(a):
     for val in a:
@@ -63,12 +92,11 @@ def getLevel(level):
     overworldPath = '../Levels/level%d/%s_level%s.csv' % (level, "o", level)
     upsideDownPath = '../Levels/level%d/%s_level%s.csv' % (level, "u", level)
 
-    overworld = stripByType(getListFromFile(overworldPath), False)
-    persistant = stripByType(getListFromFile(overworldPath), True)
-    upsideDown = stripByType(getListFromFile(upsideDownPath), False)
-
-    print(overworld)
-    print(persistant)
-    print(upsideDown)
+    overworld = convertBoardToInstances(
+                stripByType(getListFromFile(overworldPath), False))
+    persistant = convertBoardToInstances(
+                stripByType(getListFromFile(overworldPath), True))
+    upsideDown = convertBoardToInstances(
+                stripByType(getListFromFile(upsideDownPath), False))
 
     return UDLevel.Level(overworld, persistant, upsideDown)
