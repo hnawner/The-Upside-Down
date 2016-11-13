@@ -60,8 +60,8 @@ def stripByType(a, keepOnlyPersistant = False):
 
 
 def getLevel(level):
-    overworldPath = 'level%d/%s_level%s.csv' % (level, "o", level)
-    upsideDownPath = 'level%d/%s_level%s.csv' % (level, "u", level)
+    overworldPath = '../Levels/level%d/%s_level%s.csv' % (level, "o", level)
+    upsideDownPath = '../Levels/level%d/%s_level%s.csv' % (level, "u", level)
 
     overworld = stripByType(getListFromFile(overworldPath), False)
     persistant = stripByType(getListFromFile(overworldPath), True)
