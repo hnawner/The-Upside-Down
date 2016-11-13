@@ -42,7 +42,7 @@ def getListFromFile(path):
     return clean2dList(levelList)
 
 def stripByType(a, keepOnlyPersistant = False):
-    persistantObjects = ["S(D)", "S(A)", "D", "R", "#"]
+    persistantObjects = ["S(D)", "S(A)", "D(L)", "D(U)" "R", "#", "KW"]
 
     newList = copy.deepcopy(a)
     (rows, cols) = (len(a), len(a[0]))
