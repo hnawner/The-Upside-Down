@@ -7,8 +7,10 @@ Key for the level generator:
 * P: Player
 * W: Wall
 * K: Key
-* D: Door
 * R: Stone
+* KW: Keywall
+* D(L): Locked Door
+* D(U): Unlocked Door
 * S(A): Switch (activated)
 * S(D): Switch (deactivated)
 * \#: Portal
