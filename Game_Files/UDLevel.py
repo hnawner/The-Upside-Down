@@ -20,7 +20,7 @@ class Level(object):
             strOut = ""
 
             if (a == []):
-                print([])
+                strOut += ("[]")
                 return
             rows = len(a)
             cols = len(a[0])
