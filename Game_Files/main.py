@@ -98,7 +98,7 @@ class Game(cocos.layer.ColorLayer):
         #music_player.pause()
 
     def updateLocation(self, row, col, drow, dcol):
-        self.level.overworld[row][col].location = (row+drow, col+dcol)
+        self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
         self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
         self.level.overworld[row][col] = Game_elements.Floor()
 
@@ -106,6 +106,11 @@ class Game(cocos.layer.ColorLayer):
         if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
             return False
         nextSpace = self.level.overworld[row+drow][col+dcol]
+        # test if nextSpace has a key
+        if (isinstance(nextSpace, Game_elements.Key)):
+            self.player.hasKey = True
+            self.updateLocation(row, col, drow, dcol) # and move player into space
+            return True
         if (nextSpace.isMovable):
             if (self.doMove(nextSpace.location[0], nextSpace.location[1], drow, dcol)):
                 nextSpace = self.level.overworld[row+drow][col+dcol]
