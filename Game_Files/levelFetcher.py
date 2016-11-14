@@ -10,29 +10,29 @@ def convertBoardToInstances(a):
             key = a[row][col]
 
             if key == "_":
-                a[row][col] = Game_elements.Floor()
+                a[row][col] = Game_elements.Floor((row, col))
             elif key == "P":
-                a[row][col] = Game_elements.Player()
+                a[row][col] = Game_elements.Player((row, col))
             elif key == "W":
-                a[row][col] = Game_elements.Wall()
+                a[row][col] = Game_elements.Wall((row, col))
             elif key == "R":
-                a[row][col] = Game_elements.Rock()
+                a[row][col] = Game_elements.Rock((row, col))
             elif key == 'K':
-                a[row][col] = Game_elements.Key()
+                a[row][col] = Game_elements.Key((row, col))
             elif key == "KW":
-                a[row][col] = Game_elements.Keywall()
+                a[row][col] = Game_elements.Keywall((row, col))
             elif key == "D(L)":
-                a[row][col] = Game_elements.Door(True)
+                a[row][col] = Game_elements.Door((row, col), True)
             elif key == "D(U)":
-                a[row][col] = Game_elements.Door(False)
+                a[row][col] = Game_elements.Door((row, col), False)
             elif key == "S(A)":
-                a[row][col] = Game_elements.Switch(True)
+                a[row][col] = Game_elements.Switch((row, col), True)
             elif key == "S(D)":
-                a[row][col] = Game_elements.Switch(False)
+                a[row][col] = Game_elements.Switch((row, col), False)
             elif key == "L":
-                a[row][col] = Game_elements.Ladder()
+                a[row][col] = Game_elements.Ladder((row, col))
             elif key == "#":
-                a[row][col] = Game_elements.Portal()
+                a[row][col] = Game_elements.Portal((row, col))
     return a
 
 def rowIsEmpty(a):
@@ -75,7 +75,7 @@ def getListFromFile(path):
     return clean2dList(levelList)
 
 def stripByType(a, keepOnlyPersistant = False):
-    persistantObjects = ["S(D)", "S(A)", "D(L)", "D(U)", "R", "#", "KW", "P"]
+    persistantObjects = ["S(D)", "S(A)", "D(L)", "D(U)", "R", "#", "KW"]
 
     newList = copy.deepcopy(a)
     (rows, cols) = (len(a), len(a[0]))

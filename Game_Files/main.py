@@ -32,13 +32,13 @@ class Game(cocos.layer.ColorLayer):
         self.justInPortal = False
         self.onSwitch = False
         # init overworld
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.level.overworld[row][col].location = (row, col)
-        # init upsidedown
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.level.upsideDown[row][col].location = (row, col)
+        # for row in range(self.rows):
+        #     for col in range(self.cols):
+        #         self.level.overworld[row][col].location = (row, col)
+        # # init upsidedown
+        # for row in range(self.rows):
+        #     for col in range(self.cols):
+        #         self.level.upsideDown[row][col].location = (row, col)
         # init persistant
         for row in range(self.rows):
             for col in range(self.cols):
@@ -63,7 +63,7 @@ class Game(cocos.layer.ColorLayer):
                 if isinstance(currentObject, Game_elements.Floor):
                     continue
 
-                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite = cocos.sprite.Sprite(currentObject.overImg)
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=1)
 
@@ -73,11 +73,11 @@ class Game(cocos.layer.ColorLayer):
                 currentObject = self.level.persistant[row][col]
 
                 if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
-                    extraSprite = cocos.sprite.Sprite(pyglet.image.load((Game_elements.Floor().overImg)))
+                    extraSprite = cocos.sprite.Sprite(Game_elements.Floor((None, None)).overImg)
                     extraSprite.position = 16+32*col, -16+32*(self.rows-row)
                     self.add(extraSprite, z=0)
 
-                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.overImg)))
+                currentSprite = cocos.sprite.Sprite(currentObject.overImg)
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=0)
 
@@ -87,11 +87,11 @@ class Game(cocos.layer.ColorLayer):
                 currentObject = self.level.persistant[row][col]
 
                 if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
-                    extraSprite = cocos.sprite.Sprite(pyglet.image.load((Game_elements.Floor().underImg)))
+                    extraSprite = cocos.sprite.Sprite(Game_elements.Floor((None, None)).underImg)
                     extraSprite.position = 16+32*col, -16+32*(self.rows-row)
                     self.add(extraSprite, z=0)
 
-                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.underImg)))
+                currentSprite = cocos.sprite.Sprite(currentObject.underImg)
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=0)
 
@@ -103,7 +103,7 @@ class Game(cocos.layer.ColorLayer):
                 if isinstance(currentObject, Game_elements.Floor):
                     continue
 
-                currentSprite = cocos.sprite.Sprite(pyglet.image.load((currentObject.underImg)))
+                currentSprite = cocos.sprite.Sprite(currentObject.underImg)
                 currentSprite.position = 16+32*col, -16+32*(self.rows-row)
                 self.add(currentSprite, z=2)
 
@@ -213,23 +213,23 @@ class Game(cocos.layer.ColorLayer):
             self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
             if not self.inPortal or self.justInPortal:
-                self.level.overworld[row][col] = Game_elements.Floor()
+                self.level.overworld[row][col] = Game_elements.Floor((row, col))
             else:
-                self.level.overworld[row][col] = Game_elements.Portal()
+                self.level.overworld[row][col] = Game_elements.Portal((row, col))
         elif (dimension == 'upsideDown'):
             self.level.upsideDown[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.upsideDown[row+drow][col+dcol] = self.level.upsideDown[row][col]
             if not self.inPortal or self.justInPortal:
-                self.level.upsideDown[row][col] = Game_elements.Floor()
+                self.level.upsideDown[row][col] = Game_elements.Floor((row, col))
             else:
-                self.level.upsideDown[row][col] = Game_elements.Portal()
+                self.level.upsideDown[row][col] = Game_elements.Portal((row, col))
         else:
             self.level.persistant[row][col].location = (row+drow, col+dcol) # updated player location
             self.level.persistant[row+drow][col+dcol] = self.level.persistant[row][col]
             if not self.inPortal or self.justInPortal:
-                self.level.persistant[row][col] = Game_elements.Floor()
+                self.level.persistant[row][col] = Game_elements.Floor((row, col))
             else:
-                self.level.persistant[row][col] = Game_elements.Portal()
+                self.level.persistant[row][col] = Game_elements.Portal((row, col))
 
     def doMove(self, row, col, drow, dcol):
         if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
@@ -343,20 +343,21 @@ class OptionsMenu(cocos.menu.Menu):
 class BackgroundLayer(cocos.layer.Layer):
     def __init__(self):
         super(BackgroundLayer, self).__init__()
-        r = Game_elements.Player()
-        self.image = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
+        r = Game_elements.Player((None, None))
+
+        self.image = cocos.sprite.Sprite(r.overImg)
         self.image.position = 400, 75
         self.add(self.image, z=0)
 
-        self.player = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
+        self.player = cocos.sprite.Sprite(r.overImg)
         self.player.position = 0, 295
         self.add(self.player, z=1)
 
-        self.enemy = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
+        self.enemy = cocos.sprite.Sprite(r.overImg)
         self.enemy.position = 385, 75
         self.add(self.enemy, z=1)
 
-        self.boss = cocos.sprite.Sprite(pyglet.image.load(r.overImg))
+        self.boss = cocos.sprite.Sprite(r.overImg)
         self.boss.scale = 0.4
         rect = self.boss.get_rect()
         rect.midbottom = 600, 50
