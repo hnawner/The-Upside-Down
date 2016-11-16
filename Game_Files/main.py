@@ -26,93 +26,82 @@ class Game(cocos.layer.ColorLayer):
         self.level = levelFetcher.getLevel(levelNum)
         self.rows = len(self.level.overworld)
         self.cols = len(self.level.overworld[0])
-        self.schedule(self.update)
         self.isOverworld = True
-        self.inPortal = False
-        self.justInPortal = False
         self.onSwitch = False
-        # init overworld
-        # for row in range(self.rows):
-        #     for col in range(self.cols):
-        #         self.level.overworld[row][col].location = (row, col)
-        # # init upsidedown
-        # for row in range(self.rows):
-        #     for col in range(self.cols):
-        #         self.level.upsideDown[row][col].location = (row, col)
-        # init persistant
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.level.persistant[row][col].location = (row, col)
-                if (isinstance(self.level.persistant[row][col], Game_elements.Player)):
-                    self.player = self.level.persistant[row][col]
-                    self.player.location = (row, col)
-    
+        self.spritesList = self.make3dList(self.rows, self.cols)
+        self.cellsToDraw = [(row, col) for row in range(self.rows) for col in range(self.cols)]
+
+        self.schedule(self.update)
+
+    def make3dList(self, rows, cols):
+        a=[]
+        for row in range(rows): a += [[None]*cols]
+        for row in range(rows):
+            for col in range(cols):
+                a[row][col] = []
+        return a
+
     def redrawAll(self):
+        for cell in self.cellsToDraw:
+            (row, col) = cell
+
+            self.removeSprites(row, col)
+
+            self.drawFloorCell(row, col)
+            self.drawCell(row, col, self.level.persistent)
+
+            if self.isOverworld:
+                self.drawCell(row, col, self.level.overworld)
+            else:
+                self.drawCell(row, col, self.level.upsideDown)
+
+            self.drawPlayer()
+
+        self.cellsToDraw = []
+
+    def removeSprites(self, row, col):
+        for sprite in self.spritesList[row][col]:
+            self.remove(sprite)
+        self.spritesList[row][col] = []
+
+    def addSprite(self, row, col, sprite):
+        self.spritesList[row][col].append(sprite)
+        self.add(sprite)
+
+    def drawPlayer(self):
+        (row, col) = self.level.player.location
+        sprite = cocos.sprite.Sprite(self.level.player.overImg)
+        sprite.position = 16+32*col, -16+32*(self.rows-row)
+        self.addSprite(row, col, sprite)
+
+    def drawFloorCell(self, row, col):
         if self.isOverworld:
-            self.drawOverworld()
-            self.drawPersistant()
+            sprite = cocos.sprite.Sprite(Game_elements.Floor().overImg)
         else:
-            self.drawUpsideDown()
-            self.drawPersistantDark()
+            sprite = cocos.sprite.Sprite(Game_elements.Floor().underImg)
 
-    def drawOverworld(self, z=1):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                currentObject = self.level.overworld[row][col]
-                
-                if isinstance(currentObject, Game_elements.Floor):
-                    continue
+        sprite.position = 16+32*col, -16+32*(self.rows-row)
+        self.addSprite(row, col, sprite)
 
-                currentSprite = cocos.sprite.Sprite(currentObject.overImg)
-                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
-                self.add(currentSprite, z=1)
+    def drawCell(self, row, col, dimension):
+        if isinstance(dimension[row][col], Game_elements.Floor): 
+            return
 
-    def drawPersistant(self, z=0):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                currentObject = self.level.persistant[row][col]
+        if self.isOverworld:
+            sprite = cocos.sprite.Sprite(dimension[row][col].overImg)
+        else:
+            sprite = cocos.sprite.Sprite(dimension[row][col].underImg)
 
-                if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
-                    extraSprite = cocos.sprite.Sprite(Game_elements.Floor((None, None)).overImg)
-                    extraSprite.position = 16+32*col, -16+32*(self.rows-row)
-                    self.add(extraSprite, z=0)
-
-                currentSprite = cocos.sprite.Sprite(currentObject.overImg)
-                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
-                self.add(currentSprite, z=0)
-
-    def drawPersistantDark(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                currentObject = self.level.persistant[row][col]
-
-                if isinstance(currentObject, Game_elements.Rock) or isinstance(currentObject, Game_elements.Key) or isinstance(currentObject, Game_elements.Player):
-                    extraSprite = cocos.sprite.Sprite(Game_elements.Floor((None, None)).underImg)
-                    extraSprite.position = 16+32*col, -16+32*(self.rows-row)
-                    self.add(extraSprite, z=0)
-
-                currentSprite = cocos.sprite.Sprite(currentObject.underImg)
-                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
-                self.add(currentSprite, z=0)
-
-    def drawUpsideDown(self, z=2):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                currentObject = self.level.upsideDown[row][col]
-                
-                if isinstance(currentObject, Game_elements.Floor):
-                    continue
-
-                currentSprite = cocos.sprite.Sprite(currentObject.underImg)
-                currentSprite.position = 16+32*col, -16+32*(self.rows-row)
-                self.add(currentSprite, z=2)
-
+        sprite.position = 16+32*col, -16+32*(self.rows-row)
+        self.addSprite(row, col, sprite)
 
     def on_enter(self):
         super(Game, self).on_enter()
 
+        #game_music = pyglet.resource.media('tetris.mp3', streaming=False)
+
         # try:
-        #     music_player.queue(resources.game_music)
+        #     music_player.queue(game_music)
         # except:
         #     pass
 
@@ -126,149 +115,116 @@ class Game(cocos.layer.ColorLayer):
         #music_player.seek(1)
         #music_player.pause()
 
-    def testCollisions(self, row, col, drow, dcol, dimension):
-        # test persistant
-        if (dimension == 'persistant'):
-            nextSpacePer = self.level.persistant[row+drow][col+dcol]
-            # test portals
-            if (isinstance(nextSpacePer, Game_elements.Portal)):
-                self.isOverworld = not self.isOverworld
-                self.inPortal = True
-                self.justInPortal = True
-                return True
 
-            # test keywall
-            if (isinstance(nextSpacePer, Game_elements.Keywall)):
-                if (self.player.hasKey):
-                    return True
-                else: return False
+    def isLegalMove(self, gameElement, drow, dcol, dimension):
+        (row, col) = gameElement.location
 
-            # test switches
-            if (isinstance(nextSpacePer, Game_elements.Switch)):
-                self.onSwitch = True
-                return True
+        testRow = row + drow
+        testCol = col + dcol
 
-            # test door
-            if (isinstance(nextSpacePer, Game_elements.Door)):
-                if (self.onSwitch):
-                    return True
-                else: return False
+        testObject = dimension[testRow][testCol]
 
-            # test moveability
-            if (nextSpacePer.isMovable):
-                if (self.doMove(nextSpacePer.location[0], nextSpacePer.location[1], drow, dcol)):
-                    nextSpacePer = self.level.persistant[row+drow][col+dcol]
-                    #self.updateLocation(row, col, drow, dcol, 'persistant')
-                    return True
-                else: return False
-            # test for walls etc
-            elif (not nextSpacePer.isSolid):
-                #self.updateLocation(row, col, drow, dcol, 'persistant')
-                return True
-            else: return False
-        # test overworld
-        elif (dimension == 'overworld'):
-            nextSpaceOver = self.level.overworld[row+drow][col+dcol]
-            # test for key
-            if (isinstance(nextSpaceOver, Game_elements.Key)):
-                self.player.hasKey = True
-                #self.updateLocation(row, col, drow, dcol, 'overworld')
-                return True
-            # test moveability
-            elif (nextSpaceOver.isMovable):
-                if (self.testCollisions(nextSpaceOver[0], nextSpaceOver[1], drow, dcol, 'overworld')):
-                    nextSpaceOver = self.level.overworld[row+drow][col+dcol]
-                    #self.updateLocation(row, col, drow, dcol, 'overworld')
-                    return True
-                else: return False
-            # test for walls etc
-            elif (not nextSpaceOver.isSolid):
-                #self.updateLocation(row, col, drow, dcol, 'overworld')
-                return True
-            else: return False
-        # test upsidedown
-        elif (dimension == 'upsideDown'):
-            nextSpaceUnder = self.level.upsideDown[row+drow][col+dcol]
-            # test for key
-            if (isinstance(nextSpaceUnder, Game_elements.Key)):
-                self.player.hasKey = True
-                #self.updateLocation(row, col, drow, dcol, 'upsideDown')
-                return True
-
-            # test moveability
-            elif (nextSpaceUnder.isMovable):
-                if (self.testCollisions(nextSpaceUnder.location[0], nextSpaceUnder.location[1], drow, dcol, 'upsideDown')):
-                    nextSpaceUnder = self.level.upsideDown[row+drow][col+dcol]
-                    #self.updateLocation(row, col, drow, dcol, 'upsideDown')
-                    return True
-                else: return False
-            # test for walls etc
-            elif (not nextSpaceUnder.isSolid):
-                #self.updateLocation(row, col, drow, dcol, 'upsideDown')
-                return True
-            else: return False
-
-    def updateLocation(self, row, col, drow, dcol, dimension):
-        if (dimension == 'overworld'):
-            self.level.overworld[row][col].location = (row+drow, col+dcol) # updated player location
-            self.level.overworld[row+drow][col+dcol] = self.level.overworld[row][col]
-            if not self.inPortal or self.justInPortal:
-                self.level.overworld[row][col] = Game_elements.Floor((row, col))
-            else:
-                self.level.overworld[row][col] = Game_elements.Portal((row, col))
-        elif (dimension == 'upsideDown'):
-            self.level.upsideDown[row][col].location = (row+drow, col+dcol) # updated player location
-            self.level.upsideDown[row+drow][col+dcol] = self.level.upsideDown[row][col]
-            if not self.inPortal or self.justInPortal:
-                self.level.upsideDown[row][col] = Game_elements.Floor((row, col))
-            else:
-                self.level.upsideDown[row][col] = Game_elements.Portal((row, col))
-        else:
-            self.level.persistant[row][col].location = (row+drow, col+dcol) # updated player location
-            self.level.persistant[row+drow][col+dcol] = self.level.persistant[row][col]
-            if not self.inPortal or self.justInPortal:
-                self.level.persistant[row][col] = Game_elements.Floor((row, col))
-            else:
-                self.level.persistant[row][col] = Game_elements.Portal((row, col))
-
-    def doMove(self, row, col, drow, dcol):
-        if (row + drow >= self.rows or row + drow < 0 or col + dcol < 0 or col + dcol >= self.cols):
+        if testObject.isSolid:
+            if testObject.isMovable:
+                return self.doMove(testObject, drow, dcol)
             return False
-        if (self.testCollisions(row, col, drow, dcol, 'persistant') == False):
-            return False
-        if (self.isOverworld):
-            if (self.testCollisions(row, col, drow, dcol, 'overworld') == False):
-                return False
         else:
-            if (self.testCollisions(row, col, drow, dcol, 'upsideDown') == False):
-                return False
+            return True
 
-        if (self.isOverworld):
-            self.updateLocation(row, col, drow, dcol, 'overworld')
-        else:
-            self.updateLocation(row, col, drow, dcol, 'upsideDown')
-        self.updateLocation(row, col, drow, dcol, 'persistant')
+    def updateLocation(self, gameElement, row, col, newRow, newCol):
+        if gameElement.dimension == "persistent":
+            self.level.persistent[row][col] = Game_elements.Floor((row, col), "persistent")
+            self.level.persistent[newRow][newCol] = gameElement
+        elif gameElement.dimension == "overworld":
+            self.level.overworld[row][col] = Game_elements.Floor((row, col), "overworld")
+            self.level.overworld[newRow][newCol] = gameElement
+        elif gameElement.dimension == "upsideDown":
+            self.level.upsideDown[row][col] = Game_elements.Floor((row, col), "upsideDown")
+            self.level.upsideDown[newRow][newCol] = gameElement
 
-        if self.justInPortal: 
-            self.justInPortal = False
+        gameElement.location = (newRow, newCol)
+
+    def updateStates(self):
+        dimensionList = [(self.level.persistent, "persistent")]
+        if self.isOverworld:
+            dimensionList.append((self.level.overworld, "overworld"))
         else:
-            if self.inPortal: self.inPortal = False
+            dimensionList.append((self.level.upsideDown, "upsideDown"))             
+
+        for row in range(self.rows):
+            for col in range(self.cols):
+                for dimension, dimensionName in dimensionList:
+                    if isinstance(dimension[row][col], Game_elements.Portal):
+                        if self.level.player.location == (row, col):
+                            self.isOverworld = not self.isOverworld
+                            self.cellsToDraw = [(row, col) for row in range(self.rows) for col in range(self.cols)]
+                    if isinstance(dimension[row][col], Game_elements.Key):
+                        if self.level.player.location == (row, col):
+                            dimension[row][col] = Game_elements.Floor((row, col), dimensionName)
+                            self.level.player.addKey()
+                    if isinstance(dimension[row][col], Game_elements.Keywall):
+                        if self.level.player.keyCount > 0:
+                            dimension[row][col].isSolid = False
+                        if self.level.player.location == (row, col):
+                            self.level.player.removeKey()
+                            dimension[row][col] = Game_elements.Floor((row, col), dimensionName)
+                    if isinstance(dimension[row][col], Game_elements.Switch):
+                        if isinstance(self.level.persistent[row][col], Game_elements.Rock):
+                            dimension[row][col].activate()
+                        else:
+                            dimension[row][col].deactivate()
+                    if isinstance(dimension[row][col], Game_elements.Door):
+                        up = (1, 0)
+                        down = (-1, 0)
+                        left = (0, -1)
+                        right = (0, 1)
+
+                        for (drow, dcol) in (up, down, left, right):
+                            if isinstance(dimension[row+drow][col+dcol], Game_elements.Switch):
+                                if dimension[row+drow][col+dcol].isOn:
+                                    dimension[row][col].unlock()
+                                    self.cellsToDraw.append((row, col))
+                    if isinstance(dimension[row][col], Game_elements.Ladder):
+                        if self.level.player.location == (row, col):
+                            print("YOU WON!")
+
+
+    def doMove(self, gameElement, drow, dcol):
+        (row, col) = gameElement.location
+        (newRow, newCol) = (row + drow, col + dcol)
+
+        if gameElement.dimension == "player" or gameElement.dimension == "persistent":
+            if not self.isLegalMove(gameElement, drow, dcol, self.level.persistent): return False
+            if self.isOverworld:
+                if not self.isLegalMove(gameElement, drow, dcol, self.level.overworld): return False
+            else:
+                if not self.isLegalMove(gameElement, drow, dcol, self.level.upsideDown): return False
+
+        if gameElement.dimension == "overworld":
+            if not self.isLegalMove(gameElement, drow, dcol, self.level.overworld): return False
+
+        if gameElement.dimension == "overworld":
+            if not self.isLegalMove(gameElement, drow, dcol, self.level.overworld): return False
+
+
+        self.updateLocation(gameElement, row, col, newRow, newCol)
+        self.updateStates()
+        self.cellsToDraw.append((row, col))
+        self.cellsToDraw.append((newRow, newCol))
+
         return True
-
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:
-            self.doMove(self.player.location[0], self.player.location[1], 0, -1)
+            self.doMove(self.level.player, 0, -1)
         elif symbol == key.RIGHT:
-            self.doMove(self.player.location[0], self.player.location[1], 0, +1)
+            self.doMove(self.level.player, 0, +1)
         elif symbol == key.UP:
-            self.doMove(self.player.location[0], self.player.location[1], -1, 0)
+            self.doMove(self.level.player, -1, 0)
         elif symbol == key.DOWN:
-            self.doMove(self.player.location[0], self.player.location[1], +1, 0)
+            self.doMove(self.level.player, +1, 0)
 
     def update(self, dt):
-        for sprite in self.get_children():
-            self.remove(sprite)
         self.redrawAll()
 
 class MainMenu(cocos.menu.Menu):
@@ -294,9 +250,6 @@ class MainMenu(cocos.menu.Menu):
     def on_new_game(self):
         game_layer = Game(1)
         game_scene = cocos.scene.Scene(game_layer)
-
-
-
         cocos.director.director.push(
             FlipAngular3DTransition(game_scene, 1))
 
@@ -339,11 +292,10 @@ class OptionsMenu(cocos.menu.Menu):
     def on_show_fps(self, value):
         cocos.director.director.show_FPS = value
 
-#elf.player = cocos.sprite.Sprite(pyglet.resource.image((Game_elements.Switch.over_on_img)))
 class BackgroundLayer(cocos.layer.Layer):
     def __init__(self):
         super(BackgroundLayer, self).__init__()
-        r = Game_elements.Player((None, None))
+        r = Game_elements.Player()
 
         self.image = cocos.sprite.Sprite(r.overImg)
         self.image.position = 400, 75

@@ -1,8 +1,9 @@
 class Level(object):
-    def __init__(self, overworld, upsideDown, persistant):
+    def __init__(self, overworld, upsideDown, persistent, player):
         self.overworld = overworld
         self.upsideDown = upsideDown
-        self.persistant = persistant
+        self.persistent = persistent
+        self.player = player
 
     def __repr__(self):
         #Taken from CMU 15-112 Lecture Notes
@@ -40,7 +41,7 @@ class Level(object):
             return strOut
 
         strOut = (strFrom2dList(self.overworld) + "\n" + 
-                  strFrom2dList(self.persistant) + "\n" + 
+                  strFrom2dList(self.persistent) + "\n" + 
                   strFrom2dList(self.upsideDown))
         
         return strOut
